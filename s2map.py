@@ -11,9 +11,7 @@ import argparse
 import logging
 import json
 import os
-import random
 import sys
-import time
 
 
 app = Flask(__name__)
