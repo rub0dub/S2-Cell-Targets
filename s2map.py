@@ -79,7 +79,7 @@ def target():
     if not cell_lat or not cell_lng:
         abort(500)
 
-    cellid = CellId.from_lat_lng(LatLng.from_degrees(float(cell_lat), float(cell_lng))).parent(12)
+    cellid = CellId.from_lat_lng(LatLng.from_degrees(float(cell_lat), float(cell_lng))).parent(config.level)
     if cellid in targeted_cells:
         targeted_cells.remove( cellid )
     else:
@@ -126,13 +126,13 @@ def index():
 def main():
     # parse args
     parser = argparse.ArgumentParser(description = "Google S2 Mapping Test")
+    parser.add_argument('--level', help="S2 cell level", type=int, default=12)
     parser.add_argument('-l', '--location', help="starting location", default='San Jose, CA')
     parser.add_argument('-a', '--address', help="address/host for server", default='localhost')
     parser.add_argument('-p', '--port', help="port for server", default='8888')
     parser.add_argument('-f', '--file', help="targets file location", default='targets.json')
     global config
     config = parser.parse_args()
-    print type(config)
 
     # log settings
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(module)s] [%(levelname)s] %(message)s')
