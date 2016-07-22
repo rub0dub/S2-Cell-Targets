@@ -79,7 +79,7 @@ def target():
     if not cell_lat or not cell_lng:
         abort(500)
 
-    cellid = CellId.from_lat_lng(LatLng.from_degrees(float(cell_lat), float(cell_lng))).parent(config.level)
+    cellid = CellId.from_lat_lng(LatLng.from_degrees(float(cell_lat), float(cell_lng))).parent(config.LEVEL)
     if cellid in targeted_cells:
         targeted_cells.remove( cellid )
     else:
@@ -126,7 +126,7 @@ def index():
 def main():
     # parse args
     parser = argparse.ArgumentParser(description = "Google S2 Cell Targeter")
-    parser.add_argument('--level', help="S2 cell level", type=int, default=12)
+    parser.add_argument('LEVEL', help="S2 cell level", type=int)
     parser.add_argument('-l', '--location', help="starting location", default='San Jose, CA')
     parser.add_argument('-a', '--address', help="address/host for server", default='localhost')
     parser.add_argument('-p', '--port', help="port for server", default='8888')
