@@ -118,6 +118,12 @@ def load():
     return jsonify( cells, "%s cells were loaded from %s"%(len(targeted_cells), target_path) )
 
 
+@app.route("/clear/", methods=['POST'])
+def clear():
+    del targeted_cells[:]
+    return jsonify("All targets cleared.")
+
+
 @app.route("/")
 def index():
     return render_template("/index.html", center=position)
