@@ -16,6 +16,11 @@
                 zoom: 12,
                 minZoom: 5,
                 mapTypeId: google.maps.MapTypeId.ROADMAP,
+                styles: [{
+                    featureType: "poi",
+                    elementType: "labels",
+                    stylers: [{ visibility: "off" }],
+                }],
                 zoomControl: true,
                 mapTypeControl: true,
                 scaleControl: true,
