@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>s2map</title>
+
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA9vpajwe95pMi06kajNGg5yP6CpmIlmq8" type="text/javascript"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+        <script>
+        function init () {
+            var centerLatLng = new google.maps.LatLng({{ center[0] }}, {{ center[1] }})
+            window.appdata.map = new google.maps.Map(document.getElementById("map"), {
+                center: centerLatLng,
+                zoom: 12,
+                minZoom: 5,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                zoomControl: true,
+                mapTypeControl: true,
+                scaleControl: true,
+                streetViewControl: false,
+                rotateControl: true,
+                fullscreenControl: true,
+                disableDoubleClickZoom: true,
+            });
+            google.maps.event.addListener(window.appdata.map, "dblclick", function (event) {
+                toggleCell(event.latLng);
+            });
+            google.maps.event.addListener(window.appdata.map, "zoom_changed", function () {
+                if (window.appdata.map.getZoom() < window.appdata.grid_min_zoom) {
+                    clearGrid(window.appdata.grid);
+                }
+            });
+            google.maps.event.addListener(window.appdata.map, "bounds_changed", function () {
+                window.appdata.bounds_changing = true;
+            });
+            google.maps.event.addListener(window.appdata.map, "idle", function () {
+                if (window.appdata.bounds_changing) {
+                    window.appdata.bounds_changing = false;
+                    showGrid();
+                }
+            });
+        }
+
+        function clearGrid (grid_type) {
+            grid_type.forEach(function (cell, el) {
+                cell.setMap(null);
+            });
+        }
+
+        function drawGrid (grid_type, cells) {
+            clearGrid(grid_type);
+            cells.forEach(function (cell, el) {
+                var verticies = []
+                cell.forEach(function (v, el2) {
+                    verticies.push( { lat: v[0], lng: v[1] } );
+                });
+                if (grid_type == window.appdata.grid) {
+                    var c = new google.maps.Polygon({
+                        paths: verticies,
+                        strokeColor: '#000000',
+                        strokeOpacity: 0.25,
+                        strokeWeight: 1,
+                        fillColor: '#000000',
+                        fillOpacity: 0.0,
+                        zIndex: 100,
+                        map: window.appdata.map,
+                    });
+                } else {
+                    var c = new google.maps.Polygon({
+                        paths: verticies,
+                        strokeColor: '#FF0000',
+                        strokeOpacity: 0.75,
+                        strokeWeight: 1,
+                        fillColor: '#FF0000',
+                        fillOpacity: 0.25,
+                        zIndex: 200,
+                        map: window.appdata.map,
+                    });
+                }
+                google.maps.event.addListener(c, "dblclick", function (event) {
+                    toggleCell(event.latLng);
+                });
+                grid_type.push(c);
+            });
+        }
+
+        function showGrid () {
+            if (!window.appdata.show_grid) { return; };
+            if (window.appdata.map.getZoom() < window.appdata.grid_min_zoom) { return; };
+            if (window.appdata.requesting) { return; };
+            window.appdata.requesting = true;
+            var data = [
+                window.appdata.map.getBounds().getNorthEast().lat(),
+                window.appdata.map.getBounds().getNorthEast().lng(),
+                window.appdata.map.getBounds().getSouthWest().lat(),
+                window.appdata.map.getBounds().getSouthWest().lng()
+            ]
+            jQuery.ajax({
+                type: "POST",
+                data: { "bounds": data },
+                url: "/grid/",
+                traditional: true,
+                success: function (data) {
+                    drawGrid(window.appdata.grid, data);
+                },
+                error: function (jqXHR, textStatus, errorThrown ) {
+                    alert("An error occurred! " + errorThrown);
+                },
+                complete: function() {
+                    window.appdata.requesting = false;
+                },
+            });
+        }
+
+        function toggleGrid() {
+            window.appdata.show_grid = !window.appdata.show_grid;
+            if (window.appdata.show_grid) {
+                showGrid();
+            } else {
+                clearGrid(window.appdata.grid);
+            }
+        }
+
+        function toggleCell(latLng) {
+            window.appdata.requesting = true;
+            jQuery.ajax({
+                type: "POST",
+                data: { "lat": latLng.lat(), "lng": latLng.lng() },
+                url: "/target/",
+                success: function (data) {
+                    drawGrid(window.appdata.targets, data);
+                },
+                error: function (jqXHR, textStatus, errorThrown ) {
+                    alert("An error occurred! " + errorThrown);
+                },
+                complete: function() {
+                    window.appdata.requesting = false;
+                },
+            });
+        }
+
+        function saveTargets() {
+            window.appdata.requesting = true;
+            jQuery.ajax({
+                type: "POST",
+                url: "/save/",
+                success: function (data) {
+                    alert(data);
+                },
+                error: function (jqXHR, textStatus, errorThrown ) {
+                    alert("An error occurred! " + errorThrown);
+                },
+                complete: function() {
+                    window.appdata.requesting = false;
+                },
+            });
+        }
+
+        function loadTargets() {
+            window.appdata.requesting = true;
+            jQuery.ajax({
+                type: "POST",
+                url: "/load/",
+                success: function (data) {
+                    drawGrid(window.appdata.targets, data[0]);
+                    alert(data[1]);
+                },
+                error: function (jqXHR, textStatus, errorThrown ) {
+                    alert("An error occurred! " + errorThrown);
+                },
+                complete: function() {
+                    window.appdata.requesting = false;
+                },
+            });
+        }
+
+        function clearTargets() {
+            drawGrid(window.appdata.targets, []);
+        }
+
+        window.appdata = {
+            map: null,
+            targets: [],
+            grid: [],
+            show_grid: false,
+            grid_min_zoom: 12,
+            requesting: false,
+            bounds_changing: false,
+        };
+        google.maps.event.addDomListener(window, "load", init);
+        </script>
+
+        <style type="text/css">
+            #map {
+                height: 100%;
+                width: 100%;
+                position: absolute;
+                top: 0;
+                left: 0;
+                z-index: 100;
+            }
+            #map-options {
+                position: absolute;
+                bottom: 8px;
+                left: 8px;
+                z-index: 500;
+                background-color: #fff;
+                border: 1px solid #999;
+                padding: 4px;
+                padding-left: 8px;
+                padding-right: 8px;
+                text-align: center;
+                line-height: 30px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="map-options">
+            <button onclick="toggleGrid()" title="Display/hide the targeting grid">Toggle Grid</button>
+            <button onclick="saveTargets()" title="Save targeted cells to file">Save</button>
+            <button onclick="loadTargets()" title="Load targeted cells from file">Load</button>
+            <button onclick="clearTargets()" title="Clear targeted cells">Clear</button>
+        </div>
+        <div id="map"></div>
+    </body>
+</html>
