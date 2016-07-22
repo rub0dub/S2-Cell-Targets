@@ -125,7 +125,7 @@ def index():
 
 def main():
     # parse args
-    parser = argparse.ArgumentParser(description = "Google S2 Mapping Test")
+    parser = argparse.ArgumentParser(description = "Google S2 Cell Targeter")
     parser.add_argument('--level', help="S2 cell level", type=int, default=12)
     parser.add_argument('-l', '--location', help="starting location", default='San Jose, CA')
     parser.add_argument('-a', '--address', help="address/host for server", default='localhost')
