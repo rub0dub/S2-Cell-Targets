@@ -1,2 +1,2 @@
 # S2-Cell-Targets
-Intuitive selection and visualization of Google S2 cells.
+Intuitive web-UI based selection and visualization of Google S2 cells.
