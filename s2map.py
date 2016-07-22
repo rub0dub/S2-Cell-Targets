@@ -104,6 +104,8 @@ def save():
 @app.route("/load/", methods=['POST'])
 def load():
     target_path = os.path.abspath(config.file)
+    if not os.path.isfile(target_path):
+        return jsonify( [], "Missing data file\n\nExpected location: %s"%(target_path) )
     with open(target_path, 'r') as target_file:
         cell_tokens = json.loads(target_file.read())
     global targeted_cells
@@ -130,12 +132,20 @@ def main():
     parser.add_argument('-f', '--file', help="targets file location", default='targets.json')
     global config
     config = parser.parse_args()
+    print type(config)
 
     # log settings
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(module)s] [%(levelname)s] %(message)s')
 
+    # get start position
     global position
     position = get_pos_by_name(config.location)
+
+    # create target.json
+    target_path = os.path.abspath(config.file)
+    if not os.path.isfile(target_path):
+        with open(target_path, 'w') as target_file:
+            target_file.write('[]')
 
     app.run(host=config.address, port=config.port)
 
