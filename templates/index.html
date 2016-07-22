@@ -64,10 +64,10 @@
                 if (grid_type == window.appdata.grid) {
                     var c = new google.maps.Polygon({
                         paths: verticies,
-                        strokeColor: '#000000',
+                        strokeColor: '#000',
                         strokeOpacity: 0.25,
                         strokeWeight: 1,
-                        fillColor: '#000000',
+                        fillColor: '#000',
                         fillOpacity: 0.0,
                         zIndex: 100,
                         map: window.appdata.map,
@@ -75,10 +75,10 @@
                 } else {
                     var c = new google.maps.Polygon({
                         paths: verticies,
-                        strokeColor: '#FF0000',
+                        strokeColor: '#F00',
                         strokeOpacity: 0.75,
                         strokeWeight: 1,
-                        fillColor: '#FF0000',
+                        fillColor: '#F00',
                         fillOpacity: 0.25,
                         zIndex: 200,
                         map: window.appdata.map,
@@ -111,7 +111,7 @@
                     drawGrid(window.appdata.grid, data);
                 },
                 error: function (jqXHR, textStatus, errorThrown ) {
-                    alert("An error occurred! " + errorThrown);
+                    notify("An error occurred! " + errorThrown);
                 },
                 complete: function() {
                     window.appdata.requesting = false;
@@ -138,7 +138,7 @@
                     drawGrid(window.appdata.targets, data);
                 },
                 error: function (jqXHR, textStatus, errorThrown ) {
-                    alert("An error occurred! " + errorThrown);
+                    notify("An error occurred! " + errorThrown);
                 },
                 complete: function() {
                     window.appdata.requesting = false;
@@ -152,10 +152,10 @@
                 type: "POST",
                 url: "/save/",
                 success: function (data) {
-                    alert(data);
+                    notify(data);
                 },
                 error: function (jqXHR, textStatus, errorThrown ) {
-                    alert("An error occurred! " + errorThrown);
+                    notify("An error occurred! " + errorThrown);
                 },
                 complete: function() {
                     window.appdata.requesting = false;
@@ -170,10 +170,10 @@
                 url: "/load/",
                 success: function (data) {
                     drawGrid(window.appdata.targets, data[0]);
-                    alert(data[1]);
+                    notify(data[1]);
                 },
                 error: function (jqXHR, textStatus, errorThrown ) {
-                    alert("An error occurred! " + errorThrown);
+                    notify("An error occurred! " + errorThrown);
                 },
                 complete: function() {
                     window.appdata.requesting = false;
@@ -182,7 +182,26 @@
         }
 
         function clearTargets() {
-            drawGrid(window.appdata.targets, []);
+            window.appdata.requesting = true;
+            jQuery.ajax({
+                type: "POST",
+                url: "/clear/",
+                success: function (data) {
+                    drawGrid(window.appdata.targets, []);
+                    notify(data);
+                },
+                error: function (jqXHR, textStatus, errorThrown ) {
+                    notify("An error occurred! " + errorThrown);
+                },
+                complete: function() {
+                    window.appdata.requesting = false;
+                },
+            });
+        }
+
+        function notify(msg) {
+            $('#notifications').text(msg)
+            $('#notifications').fadeIn(400).delay(10000).fadeOut(400);
         }
 
         window.appdata = {
@@ -211,13 +230,24 @@
                 bottom: 8px;
                 left: 8px;
                 z-index: 500;
-                background-color: #fff;
-                border: 1px solid #999;
-                padding: 4px;
-                padding-left: 8px;
-                padding-right: 8px;
                 text-align: center;
-                line-height: 30px;
+                font-size: 18px;
+                background-color: #444;
+                border: none;
+                padding: 8px;
+            }
+            #notifications {
+                position: absolute;
+                bottom: 60px;
+                left: 8px;
+                height:auto;
+                z-index: 1000;
+                text-align: center;
+                font-size: 18px;
+                color: #eee;
+                background-color: #444;
+                border: none;
+                padding: 8px;
             }
         </style>
     </head>
@@ -228,6 +258,7 @@
             <button onclick="loadTargets()" title="Load targeted cells from file">Load</button>
             <button onclick="clearTargets()" title="Clear targeted cells">Clear</button>
         </div>
+        <div id="notifications" style='display:none'></div>
         <div id="map"></div>
     </body>
 </html>

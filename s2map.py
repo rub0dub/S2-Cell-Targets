@@ -63,7 +63,7 @@ def grid():
     coverer.max_level = 12
     covering = coverer.get_covering(target_rect)
 
-    cells = cell_to_latlng(targeted_cells)
+    cells = cell_to_latlng(covering)
 
     return jsonify(cells)
 
@@ -121,7 +121,7 @@ def load():
 @app.route("/clear/", methods=['POST'])
 def clear():
     del targeted_cells[:]
-    return jsonify("All targets cleared.")
+    return jsonify("All targets cleared")
 
 
 @app.route("/")
