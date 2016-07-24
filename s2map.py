@@ -93,7 +93,7 @@ def save():
     target_path = os.path.abspath(config.file)
     cellids = []
     for c in targeted_cells:
-        cellids.append(c.to_token())
+        cellids.append(c.id())
     with open(target_path, 'w') as target_file:
         target_file.write(json.dumps(cellids))
     return jsonify( "%s cells were saved to %s"%(len(targeted_cells), target_path) )
@@ -105,11 +105,11 @@ def load():
     if not os.path.isfile(target_path):
         return jsonify( [], "Missing data file\n\nExpected location: %s"%(target_path) )
     with open(target_path, 'r') as target_file:
-        cell_tokens = json.loads(target_file.read())
+        cellids = json.loads(target_file.read())
     global targeted_cells
     targeted_cells = []
-    for t in cell_tokens:
-        targeted_cells.append( CellId.from_token(t) )
+    for cid in cellids:
+        targeted_cells.append( CellId(cid) )
 
     cells = cell_to_latlng(targeted_cells)
 
