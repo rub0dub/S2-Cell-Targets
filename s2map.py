@@ -57,8 +57,8 @@ def grid():
     target_rect = LatLngRect.from_point_pair(ne, sw)
 
     coverer = RegionCoverer()
-    coverer.min_level = 12
-    coverer.max_level = 12
+    coverer.min_level = config.LEVEL
+    coverer.max_level = config.LEVEL
     covering = coverer.get_covering(target_rect)
 
     cells = cell_to_latlng(covering)
